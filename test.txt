@@ -1,0 +1,44 @@
+# This is a single-line comment of my custom interpreter!
+
+# This is some basic arithmetic & write to stdout
+mut foo = 50 / 2
+foo = foo + 1
+keep mystr = "string!"
+println(foo, mystr)
+
+# Also supportin logical operators
+println("5 < 5?:", 5 < 5)
+println("5 == 5?:", 5 == 5)
+println("5 != 5?:", 5 != 5)
+println("not 5:", !5)
+println("not empty string:", !"")
+
+# We also have native functions like time
+println("TIME NOW:", time())
+
+# This is a function declaration AND a closure! How cool is that?
+fn makeAdder(offset) {
+    fn add(x, y) {
+        x + y + offset
+    }
+}
+keep adder_by_1 = makeAdder(1)
+println(adder_by_1(10, 5))
+
+# This is a classic if-else control flow
+keep yes = true
+if ((yes and true) or false) {
+    if (true or false) {
+        println("this should print")
+    }
+} else {
+    println("this shouldn't")
+}
+println("this should appear always")
+
+# This is a while loop
+mut counter = 0
+while (counter < 5) {
+    println("This should print 5 times!")
+    counter = counter + 1
+}
