@@ -1,15 +1,15 @@
 import Parser from "./frontend/parser.ts";
 import { evaluate } from "./runtime/interpreter.ts";
-import Environment, { createGlobalEnv } from "./runtime/environment.ts";
+import { createGlobalEnv } from "./runtime/environment.ts";
+import { runtime_to_str } from "./runtime/values.ts";
 
-// loop();
-run("./test.txt");
+const EXTENSION = ".lai"; // Extension for LAIka files
 
 function loop(): void {
     const parser = new Parser();
     const env = createGlobalEnv();
 
-    console.log("Nero v0.1");
+    console.log("LAIka v0.1");
 
     while(true) {
         const input = prompt("> ");
@@ -21,10 +21,9 @@ function loop(): void {
 
         try {
             const program = parser.produceAST(input);
-            console.log(program);
-    
+            // console.log(program);
             const result = evaluate(program, env);
-            console.log(result);
+            console.log(runtime_to_str(result));
         } catch(e) {
             console.log(e);
             continue;
@@ -46,3 +45,19 @@ async function run(filename: string) {
         console.log(e);
     }
 }
+
+async function main() {
+    if (Deno.args.length == 0) {
+        loop();
+    } else if (Deno.args.length == 1) {
+        const filename = Deno.args[0];
+        if (filename.endsWith(EXTENSION))
+            await run(filename);
+        else
+            throw `Source code files must end with ${EXTENSION} extension.`;
+    } else {
+        throw `Multiple filenames [${Deno.args}] cannot be simultaneously interpreted.`
+    }
+}
+
+main()

@@ -38,7 +38,8 @@ println("this should appear always")
 
 # This is a while loop
 mut counter = 0
-while (counter < 5) {
-    println("This should print 5 times!")
+keep LIMIT = 3
+while (counter < LIMIT) {
+    println("This should print 3 times!")
     counter = counter + 1
 }

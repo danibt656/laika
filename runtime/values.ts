@@ -95,3 +95,22 @@ export interface FnVal extends RuntimeVal {
     declarationEnv: Environment; // Where the function is defined
     body: Stmt[];
 }
+
+export function runtime_to_str(val: RuntimeVal): string {
+    switch (val.type) {
+        case "null":
+            return ""+(val as NullVal).value;
+        case "number":
+            return ""+(val as NumberVal).value;
+        case "string":
+            return ""+(val as StringVal).value;
+        case "boolean":
+            return ""+(val as BooleanVal).value;
+        case "object":
+            return JSON.stringify(Object.fromEntries((val as ObjectVal).properties));
+        case "function":
+            return `Function ${(val as FnVal).name}`;
+        default:
+            return "";
+    }
+}
