@@ -12,7 +12,7 @@ function loop(): void {
     console.log("LAIka v0.1");
 
     while(true) {
-        const input = prompt("> ");
+        const input = prompt(">>");
 
         if (!input)
             continue;
