@@ -9,7 +9,7 @@ function loop(): void {
     const parser = new Parser();
     const env = createGlobalEnv();
 
-    console.log("LAIka v0.1");
+    console.log("LAIka v0.1 [enter '.q' for quick exit]");
 
     while(true) {
         const input = prompt(">>");

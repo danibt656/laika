@@ -49,3 +49,5 @@ for (counter=0; counter < LIMIT; ++counter) {
     println("This should print 1 times!")
     break
 }
+
+exit(0)

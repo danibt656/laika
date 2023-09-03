@@ -8,6 +8,7 @@ import { MK_NATIVE_FN, RuntimeVal, NumberVal, BooleanVal, NullVal, MK_NULL, MK_N
 export function define_native_functions(glob_env: Environment): void {
     glob_env.declareVar("println", MK_NATIVE_FN(_print), true);
     glob_env.declareVar("time", MK_NATIVE_FN(_time), true);
+    glob_env.declareVar("exit", MK_NATIVE_FN(_exit), true);
 }
 
 /**
@@ -52,3 +53,16 @@ function _print(_args: RuntimeVal[], _scope: Environment): RuntimeVal {
 function _time(_args: RuntimeVal[], _scope: Environment): RuntimeVal {
     return MK_NUMBER(Date.now());
 }
+
+/**
+ * Exits the program
+ * @param _args None
+ * @param _scope The scope environment
+ * @returns A number type with UNIX timestamp
+ */
+function _exit(_args: RuntimeVal[], _scope: Environment): RuntimeVal {
+    if (_args.length != 1 || _args[0].type != "number")
+        throw `'exit' function expected 1 number argument: Exit code.`
+    Deno.exit((_args[0] as NumberVal).value);
+}
+
