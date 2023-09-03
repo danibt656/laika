@@ -21,6 +21,7 @@ export enum TokenType {
     OpenBracket, CloseBracket, // [ ]
     Equals,
     BinaryOperator,
+    UnaryOperator,
     LogicalOperator,
     Semicolon,
     Colon,
@@ -94,9 +95,7 @@ export function tokenize(sourceCode: string): Token[] {
         else if (src[0] == ']')
             tokens.push(token(src.shift(), TokenType.CloseBracket));
 
-        else if (  src[0] == '+'
-                || src[0] == '-'
-                || src[0] == '*'
+        else if (  src[0] == '*'
                 || src[0] == '/'
                 || src[0] == '%'
             )
@@ -169,11 +168,12 @@ export function tokenize(sourceCode: string): Token[] {
                 let operator = src[0];
                 if (src[1] == "=") {
                     operator += src[1];
+                    src.shift(); src.shift();
+                    tokens.push(token(operator, TokenType.LogicalOperator));
+                } else {
                     src.shift();
+                    tokens.push(token(operator, TokenType.UnaryOperator));
                 }
-                src.shift();
-                
-                tokens.push(token(operator, TokenType.LogicalOperator));
 
             // equals = / logical operator ==
             } else if (src[0] == '=') {
@@ -187,9 +187,30 @@ export function tokenize(sourceCode: string): Token[] {
                     tokens.push(token(operator, TokenType.Equals));
                 }
                 
+            // binary sum + / autoincrement ++
+            } else if (src[0] == '+') {
+                let operator = src[0];
+                if (src[1] == "+") {
+                    operator += src[1];
+                    src.shift(); src.shift();
+                    tokens.push(token(operator, TokenType.UnaryOperator));
+                } else {
+                    src.shift();
+                    tokens.push(token(operator, TokenType.Equals));
+                } 
+            
+            // binary sum + / autoincrement ++
+            } else if (src[0] == '-') {
+                let operator = src[0];
+                if (src[1] == "-") {
+                    operator += src[1];
+                    src.shift(); src.shift();
+                    tokens.push(token(operator, TokenType.UnaryOperator));
+                } else {
+                    src.shift();
+                    tokens.push(token(operator, TokenType.Equals));
+                }
                 
-                
-
             // Skippable characters
             } else if (isskippable(src[0])) {
                 src.shift();

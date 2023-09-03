@@ -8,6 +8,7 @@ export type NodeType =
     | "FunctionDeclaration"
     | "IfStmt"
     | "WhileLoop"
+    | "ForLoop"
 
     // Expressions
     | "BinaryExpr"
@@ -61,11 +62,19 @@ export interface WhileLoop extends Stmt {
     body: Stmt[];
 }
 
+export interface ForLoop extends Stmt {
+    kind: "ForLoop";
+    initializer: Expr | VarDeclaration;
+    loop_condition: Expr;
+    increment: Expr;
+    body: Stmt[];
+}
+
 export interface Expr extends Stmt {}
 
 export interface UnaryExpr extends Expr {
     kind: "UnaryExpr";
-    left: Expr;
+    right: Expr;
     operator: string;
 }
 

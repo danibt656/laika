@@ -2,7 +2,7 @@ import {
     Stmt, Program, Expr, BinaryExpr,
     NumericLiteral, Identifier, VarDeclaration, AssignmentExpr,
     Property, ObjectLiteral, CallExpr, MemberExpr, FunctionDeclaration,
-    StringLiteral, IfStmt, LogicalExpr, WhileLoop, UnaryExpr
+    StringLiteral, IfStmt, LogicalExpr, WhileLoop, UnaryExpr, ForLoop
 } from "./ast.ts";
 import { tokenize, Token, TokenType } from "./lexer.ts";
 
@@ -60,6 +60,9 @@ export default class Parser {
 
             case TokenType.While:
                 return this.parse_while_loop();
+
+            case TokenType.For:
+                return this.parse_for_loop();
 
             default:
                 return this.parse_expr();
@@ -182,18 +185,16 @@ export default class Parser {
     private parse_while_loop(): Stmt {
         this.eat(); // Pass while keyword
 
-        // If condition
-        this.expect(TokenType.OpenParen, "Expected parenthesized condition in while loop.");
+        // Loop condition
+        this.expect(TokenType.OpenParen, "Expected '(' after 'while'.");
         const loop_condition = this.parse_expr();
         this.expect(TokenType.CloseParen, "Expected parenthesized condition in while loop.");
 
         // eat body
         this.expect(TokenType.OpenBrace, "Expected while loop body.");
-
         const body: Stmt[] = [];
         while (this.not_eof() && this.at().type != TokenType.CloseBrace)
             body.push(this.parse_stmt());
-
         this.expect(TokenType.CloseBrace, "Expected closing bracket after while loop.")
 
         const while_loop = {
@@ -205,8 +206,52 @@ export default class Parser {
         return while_loop;
     }
 
-    private parse_expr(): Expr {
-        return this.parse_assignment_expr();
+    private parse_for_loop(): Stmt {
+        this.eat(); // Pass for keyword
+
+        // LOOP CONDITION
+        this.expect(TokenType.OpenParen, "Expected '(' after 'for'.");
+        
+        // initializer
+        let initializer: Stmt | undefined;
+        if (this.at().type == TokenType.Semicolon) {
+            initializer = undefined;
+        }
+        else if (this.at().type == TokenType.Mut
+                || this.at().type == TokenType.Keep)
+            initializer = this.parse_var_declaration();
+        else
+            initializer = this.parse_expr();
+        this.expect(TokenType.Semicolon, "Expected ';' after for initializer.")
+
+        // condition
+        let loop_condition: Expr | undefined;
+        if (this.at().type != TokenType.Semicolon)
+            loop_condition = this.parse_expr();
+        this.expect(TokenType.Semicolon, "Expected ';' after for condition.")
+
+        // increment
+        let increment: Expr | undefined;
+        if (this.at().type != TokenType.CloseParen)
+            increment = this.parse_expr();
+        this.expect(TokenType.CloseParen, "Expected ')' after for clauses.")
+
+        // LOOP BODY
+        this.expect(TokenType.OpenBrace, "Expected for loop body.");
+        const body: Stmt[] = [];
+        while (this.not_eof() && this.at().type != TokenType.CloseBrace)
+            body.push(this.parse_stmt());
+        this.expect(TokenType.CloseBrace, "Expected closing bracket after for loop.")
+
+        const for_loop = {
+            kind: "ForLoop",
+            initializer: initializer,
+            loop_condition: loop_condition,
+            increment: increment,
+            body: body,
+        } as ForLoop;
+
+        return for_loop;
     }
     
     // --- Orders of Precedence ---
@@ -220,6 +265,10 @@ export default class Parser {
     // Call
     // Member
     // PrimaryExpr
+
+    private parse_expr(): Expr {
+        return this.parse_assignment_expr();
+    }
     
     private parse_assignment_expr(): Expr {
         const left = this.parse_object_expr();
@@ -235,7 +284,7 @@ export default class Parser {
 
     private parse_object_expr(): Expr {
         if (this.at().type !== TokenType.OpenBrace)
-            return this.parse_not_expr();
+            return this.parse_unary_expr();
         this.eat(); // past open brance
 
         const properties = new Array<Property>();
@@ -267,14 +316,14 @@ export default class Parser {
         return { kind: "ObjectLiteral", properties: properties } as ObjectLiteral;
     }
 
-    private parse_not_expr(): Expr {
-        if (this.at().type == TokenType.LogicalOperator
-            && this.at().value == "!") {
+    private parse_unary_expr(): Expr {
+        // !, ++, --
+        if (this.at().type == TokenType.UnaryOperator) {
             const operator = this.at().value;
-            this.eat(); // pass ! operator
+            this.eat(); // pass operator
             return {
                 kind: "UnaryExpr",
-                left: this.parse_or_expr(),
+                right: this.parse_or_expr(),
                 operator,
             } as UnaryExpr;
         }

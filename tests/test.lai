@@ -43,3 +43,8 @@ while (counter < LIMIT) {
     println("This should print 3 times!")
     counter = counter + 1
 }
+
+# This is a for loop
+for (counter=0; counter < LIMIT-1; ++counter) {
+    println("This should print 2 times!")
+}

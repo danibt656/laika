@@ -46,9 +46,32 @@ export function eval_binary_expr(binop: BinaryExpr, env: Environment): RuntimeVa
 }
 
 export function eval_unary_expr(unop: UnaryExpr, env: Environment): RuntimeVal {
-    const result = !isTruthy(evaluate(unop.left, env));
+    switch (unop.operator) {
+        case "!": {
+            const result = !isTruthy(evaluate(unop.right, env));
+            return { type: "boolean", value: result } as BooleanVal;
+        }
+        case "++": {
+            const right = evaluate(unop.right, env);
+            if (right.type != "number")
+                throw `Cannot apply unary operator ${unop.operator} to object of type ${right.type}`;
+            const result = (right as NumberVal);
+            result.value += 1;
+            return result;
+        }
+        case "--": {
+            const right = evaluate(unop.right, env);
+            if (right.type != "number")
+                throw `Cannot apply unary operator ${unop.operator} to object of type ${right.type}`;
+                const result = (right as NumberVal);
+                result.value -= 1;
+                return result;
+        }
+        default:
+            throw `Unexpected unary operator: ${unop.operator}`;
+    }
 
-    return { type: "boolean", value: result } as BooleanVal
+    
 }
 
 export function eval_logical_expr(logop: LogicalExpr, env: Environment): RuntimeVal {

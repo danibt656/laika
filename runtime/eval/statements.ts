@@ -1,4 +1,5 @@
 import {
+ForLoop,
     FunctionDeclaration, Program, VarDeclaration, WhileLoop
 } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
@@ -37,6 +38,19 @@ export function eval_fn_declaration(decl: FunctionDeclaration, env: Environment)
 export function eval_while_loop(loop: WhileLoop, env: Environment): RuntimeVal {
     while (isTruthy(evaluate(loop.loop_condition, env)))
         execute_stmt_body(loop.body, env);
+    
+    return MK_NULL();
+}
+
+export function eval_for_loop(loop: ForLoop, env: Environment): RuntimeVal {
+    if (loop.initializer)
+        evaluate(loop.initializer, env);
+
+    while (isTruthy(evaluate(loop.loop_condition, env))) {
+        execute_stmt_body(loop.body, env);
+        if (loop.increment)
+            evaluate(loop.increment, env);
+    }
     
     return MK_NULL();
 }

@@ -1,8 +1,9 @@
-import { RuntimeVal, NumberVal, StringVal, MK_NULL } from "./values.ts";
+import { RuntimeVal, NumberVal, StringVal, MK_NULL, MK_BOOL } from "./values.ts";
 import {
     Identifier, BinaryExpr, NumericLiteral, Stmt, Program,
     VarDeclaration, AssignmentExpr, ObjectLiteral, CallExpr,
-    FunctionDeclaration, StringLiteral, IfStmt, LogicalExpr, WhileLoop, UnaryExpr
+    FunctionDeclaration, StringLiteral, IfStmt, LogicalExpr,
+    WhileLoop, UnaryExpr, ForLoop
 } from "../frontend/ast.ts";
 import Environment from "./environment.ts";
 import {
@@ -12,12 +13,15 @@ import {
     eval_unary_expr,
 } from "./eval/expressions.ts";
 import {
-    eval_fn_declaration, eval_program, eval_var_declaration,
+    eval_fn_declaration, eval_for_loop, eval_program, eval_var_declaration,
     eval_while_loop
 } from "./eval/statements.ts";
 
 
-export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
+export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVal {
+    if (!astNode)
+        return MK_BOOL();
+
     switch (astNode.kind) {
         case "NumericLiteral":
             return {
@@ -57,6 +61,9 @@ export function evaluate(astNode: Stmt, env: Environment): RuntimeVal {
 
         case "WhileLoop":
             return eval_while_loop(astNode as WhileLoop, env);
+        
+        case "ForLoop":
+            return eval_for_loop(astNode as ForLoop, env);
 
         case "AssignmentExpr":
             return eval_assignment_expr(astNode as AssignmentExpr, env);
