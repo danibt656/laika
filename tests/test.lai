@@ -45,6 +45,7 @@ while (counter < LIMIT) {
 }
 
 # This is a for loop
-for (counter=0; counter < LIMIT-1; ++counter) {
-    println("This should print 2 times!")
+for (counter=0; counter < LIMIT; ++counter) {
+    println("This should print 1 times!")
+    break
 }

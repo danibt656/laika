@@ -1,4 +1,4 @@
-import { RuntimeVal, NumberVal, StringVal, MK_NULL, MK_BOOL } from "./values.ts";
+import { RuntimeVal, NumberVal, StringVal, MK_NULL, MK_BOOL, LoopBreakpoint } from "./values.ts";
 import {
     Identifier, BinaryExpr, NumericLiteral, Stmt, Program,
     VarDeclaration, AssignmentExpr, ObjectLiteral, CallExpr,
@@ -65,6 +65,11 @@ export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVa
         case "ForLoop":
             return eval_for_loop(astNode as ForLoop, env);
 
+        case "LoopBreak":
+            return { type: "loop-bp", value: "break" } as LoopBreakpoint;
+        case "LoopPass":
+            return { type: "loop-bp", value: "pass" } as LoopBreakpoint;
+
         case "AssignmentExpr":
             return eval_assignment_expr(astNode as AssignmentExpr, env);
 
@@ -74,15 +79,21 @@ export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVa
         case "CallExpr":
             return eval_call_expr(astNode as CallExpr, env);
             
-
         default:
             throw `This AST Node has not yet been setup for interpretation: ${JSON.stringify(astNode)}`;
     }
 }
 
-export function execute_stmt_body(body: Stmt[], scope: Environment): RuntimeVal {
+export function execute_stmt_body(body: Stmt[], scope: Environment, inLoop: boolean): RuntimeVal {
     let result: RuntimeVal = MK_NULL();
-    for (const stmt of body)
+    for (const stmt of body) {
         result = evaluate(stmt, scope);
+        // Account for break / pass statements
+        if (result.type == "loop-bp") {
+            if (!inLoop)
+                throw `Cannot use ${(result as LoopBreakpoint).value} keyword in non-loop body.`;
+            return result;
+        }
+    }
     return result;
 }

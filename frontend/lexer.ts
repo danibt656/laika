@@ -14,6 +14,7 @@ export enum TokenType {
     If, Else,
     Or, And,
     While, For,
+    Break, Pass,
     
     // Grouping * Operators
     OpenParen, CloseParen, // ( )
@@ -43,6 +44,8 @@ const KEYWORDS: Record<string, TokenType> = {
     'and': TokenType.And,
     'while': TokenType.While,
     'for': TokenType.For,
+    'break': TokenType.Break,
+    'pass': TokenType.Pass,
 }
 
 export interface Token {

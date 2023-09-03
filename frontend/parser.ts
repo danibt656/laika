@@ -2,7 +2,8 @@ import {
     Stmt, Program, Expr, BinaryExpr,
     NumericLiteral, Identifier, VarDeclaration, AssignmentExpr,
     Property, ObjectLiteral, CallExpr, MemberExpr, FunctionDeclaration,
-    StringLiteral, IfStmt, LogicalExpr, WhileLoop, UnaryExpr, ForLoop
+    StringLiteral, IfStmt, LogicalExpr, WhileLoop, UnaryExpr,
+    ForLoop, LoopBreak, LoopPass
 } from "./ast.ts";
 import { tokenize, Token, TokenType } from "./lexer.ts";
 
@@ -63,6 +64,11 @@ export default class Parser {
 
             case TokenType.For:
                 return this.parse_for_loop();
+
+            case TokenType.Pass:
+                this.eat(); return { kind: "LoopPass" } as LoopPass;
+            case TokenType.Break:
+                this.eat(); return { kind: "LoopBreak" } as LoopBreak;
 
             default:
                 return this.parse_expr();

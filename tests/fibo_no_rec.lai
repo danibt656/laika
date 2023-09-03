@@ -1,0 +1,10 @@
+# Classic Fibonacci without recursion
+
+mut a = 0
+mut temp = 0
+
+for (mut b = 1; a < 10000; b = temp + b) {
+  println(a)
+  temp = a
+  a = b
+}

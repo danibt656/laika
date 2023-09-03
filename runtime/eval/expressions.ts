@@ -153,7 +153,7 @@ export function eval_call_expr(call: CallExpr, env: Environment): RuntimeVal {
         }
 
         // Evaluate function body line by line
-        return execute_stmt_body(func.body, scope);
+        return execute_stmt_body(func.body, scope, false);
     }
 
     throw `Cannot call value that is not a function: ${JSON.stringify(fn)}`
@@ -161,9 +161,9 @@ export function eval_call_expr(call: CallExpr, env: Environment): RuntimeVal {
 
 export function eval_if_else(stmt: IfStmt, env: Environment): RuntimeVal {
     if (isTruthy(evaluate(stmt.if_condition, env)))
-        return execute_stmt_body(stmt.then_branch, env);
+        return execute_stmt_body(stmt.then_branch, env, false);
     else if (stmt.else_branch)
-        return execute_stmt_body(stmt.else_branch, env);
+        return execute_stmt_body(stmt.else_branch, env, false);
     
     return MK_NULL();
 }

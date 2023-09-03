@@ -8,6 +8,9 @@ export type ValueType =
     | "string"
     | "boolean"
 
+    // Loop breakpoints
+    | "loop-bp"
+
     // Structures
     | "object"
     | "native-fn"
@@ -22,6 +25,11 @@ export interface RuntimeVal {
 export interface NullVal extends RuntimeVal {
     type: "null";
     value: null;
+}
+
+export interface LoopBreakpoint extends RuntimeVal {
+    type: "loop-bp";
+    value: string;
 }
 
 export interface NumberVal extends RuntimeVal {

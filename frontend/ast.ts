@@ -9,6 +9,8 @@ export type NodeType =
     | "IfStmt"
     | "WhileLoop"
     | "ForLoop"
+    | "LoopBreak"
+    | "LoopPass"
 
     // Expressions
     | "BinaryExpr"
@@ -68,6 +70,14 @@ export interface ForLoop extends Stmt {
     loop_condition: Expr;
     increment: Expr;
     body: Stmt[];
+}
+
+export interface LoopBreak extends Stmt {
+    kind: "LoopBreak";
+}
+
+export interface LoopPass extends Stmt {
+    kind: "LoopPass";
 }
 
 export interface Expr extends Stmt {}
