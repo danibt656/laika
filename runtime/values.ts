@@ -8,8 +8,9 @@ export type ValueType =
     | "string"
     | "boolean"
 
-    // Loop breakpoints
+    // Breakpoints
     | "loop-bp"
+    | "return"
 
     // Structures
     | "object"
@@ -27,11 +28,6 @@ export interface NullVal extends RuntimeVal {
     value: null;
 }
 
-export interface LoopBreakpoint extends RuntimeVal {
-    type: "loop-bp";
-    value: string;
-}
-
 export interface NumberVal extends RuntimeVal {
     type: "number";
     value: number;
@@ -45,6 +41,16 @@ export interface StringVal extends RuntimeVal {
 export interface BooleanVal extends RuntimeVal {
     type: "boolean";
     value: boolean;
+}
+
+export interface LoopBreakpoint extends RuntimeVal {
+    type: "loop-bp";
+    value: string;
+}
+
+export interface ReturnVal extends RuntimeVal {
+    type: "return";
+    value: RuntimeVal;
 }
 
 /**
@@ -107,7 +113,8 @@ export interface FnVal extends RuntimeVal {
 export function runtime_to_str(val: RuntimeVal): string {
     switch (val.type) {
         case "null":
-            return ""+(val as NullVal).value;
+            // return ""+(val as NullVal).value;
+            return "";
         case "number":
             return ""+(val as NumberVal).value;
         case "string":
@@ -118,6 +125,8 @@ export function runtime_to_str(val: RuntimeVal): string {
             return JSON.stringify(Object.fromEntries((val as ObjectVal).properties));
         case "function":
             return `Function ${(val as FnVal).name}`;
+        case "return":
+            return runtime_to_str((val as ReturnVal).value);
         default:
             return "";
     }

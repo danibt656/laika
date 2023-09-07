@@ -1,11 +1,11 @@
 import {
 ForLoop,
-    FunctionDeclaration, Program, VarDeclaration, WhileLoop
+    FunctionDeclaration, Program, VarDeclaration, WhileLoop, ReturnStmt
 } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate, execute_stmt_body } from "../interpreter.ts";
 import {
-    RuntimeVal,MK_NULL, FnVal, isTruthy, LoopBreakpoint
+    RuntimeVal,MK_NULL, FnVal, isTruthy, LoopBreakpoint, ReturnVal
 } from "../values.ts";
 
 export function eval_program(program: Program, env: Environment): RuntimeVal {
@@ -40,7 +40,7 @@ export function eval_fn_declaration(decl: FunctionDeclaration, env: Environment)
 export function eval_while_loop(loop: WhileLoop, env: Environment): RuntimeVal {
     let result: RuntimeVal = MK_NULL();
     while (isTruthy(evaluate(loop.loop_condition, env))) {
-        result = execute_stmt_body(loop.body, env, true);
+        result = execute_stmt_body(loop.body, env, "loop");
         if (result.type == "loop-bp") {
             if ((result as LoopBreakpoint).value == "break") break;
             if ((result as LoopBreakpoint).value == "pass") continue;
@@ -56,7 +56,7 @@ export function eval_for_loop(loop: ForLoop, env: Environment): RuntimeVal {
 
     let result: RuntimeVal = MK_NULL();
     while (isTruthy(evaluate(loop.loop_condition, env))) {
-        result = execute_stmt_body(loop.body, env, true);
+        result = execute_stmt_body(loop.body, env, "loop");
         if (result.type == "loop-bp") {
             if ((result as LoopBreakpoint).value == "break") break;
             if ((result as LoopBreakpoint).value == "pass") continue;
@@ -66,4 +66,9 @@ export function eval_for_loop(loop: ForLoop, env: Environment): RuntimeVal {
     }
     
     return MK_NULL();
+}
+
+export function eval_return_stmt(stmt: ReturnStmt, env: Environment): RuntimeVal {
+    const value: RuntimeVal = evaluate(stmt.value, env);
+    return { type: "return", value: value } as ReturnVal;
 }

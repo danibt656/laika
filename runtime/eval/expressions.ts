@@ -145,15 +145,19 @@ export function eval_call_expr(call: CallExpr, env: Environment): RuntimeVal {
         const func = fn as FnVal;
         const scope = new Environment(func.declarationEnv);
 
+        // Check arity between func declaration args & call parameters
+        if (func.parameters.length != args.length)
+            throw `Incorrect number of arguments in call to function '${func.name}'`;
+
         // Create the variables for the parameter list
         for (let i = 0; i < func.parameters.length; i++) {
-            // TODO check bounds here, verify arity of function
             const varname = func.parameters[i];
             scope.declareVar(varname, args[i], false);
         }
 
         // Evaluate function body line by line
-        return execute_stmt_body(func.body, scope, false);
+        const result = execute_stmt_body(func.body, scope, "function");
+        return result;
     }
 
     throw `Cannot call value that is not a function: ${JSON.stringify(fn)}`
@@ -161,9 +165,9 @@ export function eval_call_expr(call: CallExpr, env: Environment): RuntimeVal {
 
 export function eval_if_else(stmt: IfStmt, env: Environment): RuntimeVal {
     if (isTruthy(evaluate(stmt.if_condition, env)))
-        return execute_stmt_body(stmt.then_branch, env, false);
+        return execute_stmt_body(stmt.then_branch, env, "if-else");
     else if (stmt.else_branch)
-        return execute_stmt_body(stmt.else_branch, env, false);
+        return execute_stmt_body(stmt.else_branch, env, "if-else");
     
     return MK_NULL();
 }

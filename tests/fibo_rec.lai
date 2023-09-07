@@ -2,10 +2,10 @@
 
 fn fibo(n) {
     if (n==1 or n==0) {
-        n
-    } else {
-        fibo(n-1) + fibo(n-2)
+        return n # early return
     }
+
+    fibo(n-1) + fibo(n-2)
 }
 
 mut n = 0

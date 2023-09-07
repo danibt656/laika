@@ -1,22 +1,29 @@
-import { RuntimeVal, NumberVal, StringVal, MK_NULL, MK_BOOL, LoopBreakpoint } from "./values.ts";
+import {
+    RuntimeVal, NumberVal, StringVal, MK_NULL, MK_BOOL,
+    LoopBreakpoint, ReturnVal,
+} from "./values.ts";
 import {
     Identifier, BinaryExpr, NumericLiteral, Stmt, Program,
     VarDeclaration, AssignmentExpr, ObjectLiteral, CallExpr,
     FunctionDeclaration, StringLiteral, IfStmt, LogicalExpr,
-    WhileLoop, UnaryExpr, ForLoop
+    WhileLoop, UnaryExpr, ForLoop, ReturnStmt
 } from "../frontend/ast.ts";
 import Environment from "./environment.ts";
 import {
     eval_identifier, eval_binary_expr, eval_assignment_expr,
     eval_object_expr, eval_call_expr, eval_if_else,
-    eval_logical_expr,
-    eval_unary_expr,
+    eval_logical_expr, eval_unary_expr,
 } from "./eval/expressions.ts";
 import {
     eval_fn_declaration, eval_for_loop, eval_program, eval_var_declaration,
-    eval_while_loop
+    eval_while_loop, eval_return_stmt
 } from "./eval/statements.ts";
 
+export type BodyType =
+    | "loop"
+    | "if-else"
+    | "function"
+    ;
 
 export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVal {
     if (!astNode)
@@ -78,21 +85,31 @@ export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVa
 
         case "CallExpr":
             return eval_call_expr(astNode as CallExpr, env);
+
+        case "ReturnStmt":
+            return eval_return_stmt(astNode as ReturnStmt, env);
             
         default:
             throw `This AST Node has not yet been setup for interpretation: ${JSON.stringify(astNode)}`;
     }
 }
 
-export function execute_stmt_body(body: Stmt[], scope: Environment, inLoop: boolean): RuntimeVal {
+export function execute_stmt_body(body: Stmt[], scope: Environment, where: BodyType): RuntimeVal {
     let result: RuntimeVal = MK_NULL();
     for (const stmt of body) {
         result = evaluate(stmt, scope);
         // Account for break / pass statements
         if (result.type == "loop-bp") {
-            if (!inLoop)
-                throw `Cannot use ${(result as LoopBreakpoint).value} keyword in non-loop body.`;
+            if (where != "loop")
+                throw `Cannot use ${(result as LoopBreakpoint).value} statement in non-loop body.`;
             return result;
+        } else if (result.type == "return") {
+            if (where == "if-else")
+                return result;
+            else if (where == "function")
+                return (result as ReturnVal).value;
+            else
+                throw `Cannot use return statement in non-function nor conditional body.`;
         }
     }
     return result;

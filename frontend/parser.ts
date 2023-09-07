@@ -3,9 +3,11 @@ import {
     NumericLiteral, Identifier, VarDeclaration, AssignmentExpr,
     Property, ObjectLiteral, CallExpr, MemberExpr, FunctionDeclaration,
     StringLiteral, IfStmt, LogicalExpr, WhileLoop, UnaryExpr,
-    ForLoop, LoopBreak, LoopPass
+    ForLoop, LoopBreak, LoopPass, ReturnStmt
 } from "./ast.ts";
 import { tokenize, Token, TokenType } from "./lexer.ts";
+
+const MAX_FN_PARAMS = 255;
 
 export default class Parser {
     private tokens: Token[] = [];
@@ -70,6 +72,9 @@ export default class Parser {
             case TokenType.Break:
                 this.eat(); return { kind: "LoopBreak" } as LoopBreak;
 
+            case TokenType.Return:
+                return this.parse_return_stmt();
+
             default:
                 return this.parse_expr();
         }
@@ -121,6 +126,8 @@ export default class Parser {
                 throw `Inside function ${name} declaration expected parameter ${arg} to be of type string.`
             params.push((arg as Identifier).symbol);
         }
+        if (params.length > MAX_FN_PARAMS)
+            throw `Can't have more than ${MAX_FN_PARAMS} parameters in function declaration '${name}'.`
 
         // Body
         this.expect(TokenType.OpenBrace, "Expected function body following declaration.");
@@ -258,6 +265,21 @@ export default class Parser {
         } as ForLoop;
 
         return for_loop;
+    }
+
+    private parse_return_stmt(): Stmt {
+        this.eat(); // Pass return keyword
+        let value: Expr;
+
+        if (this.at().type == TokenType.Identifier
+        || this.at().type == TokenType.Number
+        || this.at().type == TokenType.String) {
+            value = this.parse_expr();
+        } else {
+            throw `Expected expression after return statement.`;
+        }
+
+        return { kind: "ReturnStmt", value: value } as ReturnStmt;
     }
     
     // --- Orders of Precedence ---
@@ -463,6 +485,9 @@ export default class Parser {
 
         while (this.at().type == TokenType.Comma && this.eat())
             args.push(this.parse_assignment_expr());
+
+        if (args.length > MAX_FN_PARAMS)
+            throw `Can't have more than ${MAX_FN_PARAMS} arguments.`
 
         return args;
     }
