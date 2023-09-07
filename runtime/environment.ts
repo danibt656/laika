@@ -27,6 +27,10 @@ export default class Environment {
         this.constants = new Set();
     }
 
+    public isGlobal() {
+        return this.parent == undefined;
+    }
+
     public declareVar(varname: string, value: RuntimeVal, constant: boolean): RuntimeVal {
         if (this.variables.has(varname))
             throw `Cannot declare variable '${varname}', as it already exists.`;

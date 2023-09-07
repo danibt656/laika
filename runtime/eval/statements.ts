@@ -5,7 +5,8 @@ ForLoop,
 import Environment from "../environment.ts";
 import { evaluate, execute_stmt_body } from "../interpreter.ts";
 import {
-    RuntimeVal,MK_NULL, FnVal, isTruthy, LoopBreakpoint, ReturnVal
+    RuntimeVal,MK_NULL, FnVal, isTruthy, LoopBreakpoint, ReturnVal,
+    NumberVal
 } from "../values.ts";
 
 export function eval_program(program: Program, env: Environment): RuntimeVal {
@@ -70,5 +71,12 @@ export function eval_for_loop(loop: ForLoop, env: Environment): RuntimeVal {
 
 export function eval_return_stmt(stmt: ReturnStmt, env: Environment): RuntimeVal {
     const value: RuntimeVal = evaluate(stmt.value, env);
-    return { type: "return", value: value } as ReturnVal;
+    const retVal = { type: "return", value: value } as ReturnVal;
+
+    // If we are on top-level env, return is same as exit
+    if (env.isGlobal()) {
+        if (value.type != "number") throw `Can only use number values in top-level return statement.`
+        Deno.exit((value as NumberVal).value);
+    }
+    return retVal;
 }
