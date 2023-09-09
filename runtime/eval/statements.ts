@@ -1,21 +1,15 @@
 import {
-ForLoop,
-    FunctionDeclaration, Program, VarDeclaration, WhileLoop, ReturnStmt
+    ForLoop, FunctionDeclaration, Program,VarDeclaration,
+    WhileLoop, ReturnStmt
 } from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate, execute_stmt_body } from "../interpreter.ts";
 import {
-    RuntimeVal,MK_NULL, FnVal, isTruthy, LoopBreakpoint, ReturnVal,
-    NumberVal
+    RuntimeVal,MK_NULL, FnVal, isTruthy, LoopBreakpoint, ReturnVal
 } from "../values.ts";
 
 export function eval_program(program: Program, env: Environment): RuntimeVal {
-    let lastEvaluated: RuntimeVal = MK_NULL();
-
-    for (const statement of program.body)
-        lastEvaluated = evaluate(statement, env);
-
-    return lastEvaluated;
+    return execute_stmt_body(program.body, env, "main");
 }
 
 export function eval_var_declaration(decl: VarDeclaration, env: Environment): RuntimeVal {
@@ -73,10 +67,5 @@ export function eval_return_stmt(stmt: ReturnStmt, env: Environment): RuntimeVal
     const value: RuntimeVal = evaluate(stmt.value, env);
     const retVal = { type: "return", value: value } as ReturnVal;
 
-    // If we are on top-level env, return is same as exit
-    if (env.isGlobal()) {
-        if (value.type != "number") throw `Can only use number values in top-level return statement.`
-        Deno.exit((value as NumberVal).value);
-    }
     return retVal;
 }

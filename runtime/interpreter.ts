@@ -20,6 +20,7 @@ import {
 } from "./eval/statements.ts";
 
 export type BodyType =
+    | "main"
     | "loop"
     | "if-else"
     | "function"
@@ -30,6 +31,9 @@ export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVa
         return MK_BOOL();
 
     switch (astNode.kind) {
+        case "Program":
+            return eval_program(astNode as Program, env);
+
         case "NumericLiteral":
             return {
                 value: (astNode as NumericLiteral).value,
@@ -53,9 +57,6 @@ export function evaluate(astNode: Stmt | undefined, env: Environment): RuntimeVa
 
         case "LogicalExpr":
             return eval_logical_expr(astNode as LogicalExpr, env);
-
-        case "Program":
-            return eval_program(astNode as Program, env);
 
         case "VarDeclaration":
             return eval_var_declaration(astNode as VarDeclaration, env);
@@ -98,15 +99,18 @@ export function execute_stmt_body(body: Stmt[], scope: Environment, where: BodyT
     let result: RuntimeVal = MK_NULL();
     for (const stmt of body) {
         result = evaluate(stmt, scope);
-        // Account for break / pass statements
+
+        // break / pass statements
         if (result.type == "loop-bp") {
             if (where != "loop")
                 throw `Cannot use ${(result as LoopBreakpoint).value} statement in non-loop body.`;
             return result;
+
+        // return statements
         } else if (result.type == "return") {
             if (where == "if-else")
                 return result;
-            else if (where == "function")
+            else if (where == "function" || where == "main")
                 return (result as ReturnVal).value;
             else
                 throw `Cannot use return statement in non-function nor conditional body.`;
